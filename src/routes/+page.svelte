@@ -43,10 +43,9 @@
 	async function getWifi() {
 		const response = await fetch('/wifi');
 		const result = (await response.json()) as Record<string, number>;
-		if (!lastPackets) lastPackets = result;
 		for (const mac in result) {
 			if (!(mac in wifiHistory)) wifiHistory[mac] = [];
-			wifiHistory[mac].push(Math.ceil((result[mac] - lastPackets[mac]) / 50));
+			wifiHistory[mac].push(Math.ceil((result[mac] - lastPackets[mac]) / 100));
 			if (wifiHistory[mac].length > MAX_HISTOGRAM_COLS)
 				wifiHistory[mac].splice(0, wifiHistory[mac].length - MAX_HISTOGRAM_COLS);
 		}
@@ -64,7 +63,9 @@
 		connectionStarted = true;
 	}
 
-	function startWifi() {
+	async function startWifi() {
+		const response = await fetch('/wifi');
+		lastPackets = (await response.json()) as Record<string, number>;
 		fetch('known-devices.json')
 			.then((r) => r.json())
 			.then((obj) => {
